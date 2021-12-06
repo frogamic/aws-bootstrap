@@ -29,5 +29,13 @@ for TEMPLATE in *.yml; do
 		--parameter-overrides \
 			"Project=${PROJECT}" \
 			"Stage=${STAGE}" \
-			"Revision=${REVISION}"
+			"Revision=${REVISION}" \
+		--no-fail-on-empty-changeset
+done
+
+cd ../scripts
+for SCRIPT in *.sh; do
+	echo "Executing ${SCRIPT}"
+
+	. "$SCRIPT"
 done
