@@ -12,7 +12,10 @@ die() {
 cd "$(dirname "$BASH_SOURCE[0]")"
 
 PROJECT="bootstrap"
-REVISION="$(git rev-parse --short HEAD || die "Unknown git revision")"
+REVISION="$(git rev-parse --short HEAD || die "unknown")"
+if [[ "$(git diff --stat)" != "" ]]; then
+	 REVISION="${REVISION}-dirty"
+fi
 REGION="ap-southeast-2"
 
 cd templates
