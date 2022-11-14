@@ -4,15 +4,11 @@ Description: 'IAM Policy, Role and InstanceProfile to allow an EC2 instance to b
 Metadata:
   Template:
     Project: !Ref Project
-    Stage: !Ref Stage
     Revision: !Ref Revision
 
 Parameters:
   Project:
     Description: An identifier for the project this stack is associated with.
-    Type: String
-  Stage:
-    Description: The application deployment stage.
     Type: String
   Revision:
     Description: The git short hash of the repo when the template was applied.
@@ -61,8 +57,8 @@ Resources:
       Tags:
         - Key: Project
           Value: !Ref Project
-        - Key: Stage
-          Value: !Ref Stage
+        - Key: Revision
+          Value: !Ref Revision
 
   SessionManagerInstanceProfile:
     Type: AWS::IAM::InstanceProfile

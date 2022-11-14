@@ -15,7 +15,6 @@ for KEY in "${KEYS[@]}"; do
 		--key-name "$KEYNAME" \
 		--filters \
 			"Name=tag:Project,Values=${PROJECT}" \
-			"Name=tag:Stage,Values=${STAGE}" \
 		--output json \
 		--query 'KeyPairs[0].KeyFingerprint' 2>/dev/null \
 		|| echo "$NONE" \
@@ -36,14 +35,13 @@ for KEY in "${KEYS[@]}"; do
 			--public-key-material "$KEY" \
 			--output text \
 			--query "[KeyPairId,KeyFingerprint]" \
-			--tag-specifications "ResourceType=key-pair,Tags=[{Key=Project,Value=${PROJECT}},{Key=Stage,Value=${STAGE}}]"
+			--tag-specifications "ResourceType=key-pair,Tags=[{Key=Project,Value=${PROJECT}},{Key=Revision,Value=${REVISION}}]"
 	fi
 done
 
 ALLKEYS="$(aws ec2 describe-key-pairs \
 	--filters \
 		"Name=tag:Project,Values=${PROJECT}" \
-		"Name=tag:Stage,Values=${STAGE}" \
 	--output text \
 	--query "KeyPairs[*].KeyName" \
 )"
