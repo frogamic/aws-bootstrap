@@ -32,7 +32,7 @@ for KEY in "${KEYS[@]}"; do
 			echo "  Uploading key - $KEYNAME"
 		aws ec2 import-key-pair \
 			--key-name "$KEYNAME" \
-			--public-key-material "$KEY" \
+			--public-key-material "$(echo "$KEY" | base64)" \
 			--output text \
 			--query "[KeyPairId,KeyFingerprint]" \
 			--tag-specifications "ResourceType=key-pair,Tags=[{Key=Project,Value=${PROJECT}},{Key=Revision,Value=${REVISION}}]"
