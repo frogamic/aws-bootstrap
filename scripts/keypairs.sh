@@ -1,3 +1,4 @@
+#! /usr/bin/env bash
 # Key names CANNOT have spaces in them
 KEYS=( \
 	"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICzGL9KhRd2lKNuTZq1cK+4bkioGBkaMetfbzf/uuqTj dominic@enki" \
@@ -29,7 +30,7 @@ for KEY in "${KEYS[@]}"; do
 			echo "  Deleting existing key - $KEYNAME"
 			aws ec2 delete-key-pair --key-name "$KEYNAME"
 		fi
-			echo "  Uploading key - $KEYNAME"
+		echo "  Uploading key - $KEYNAME"
 		aws ec2 import-key-pair \
 			--key-name "$KEYNAME" \
 			--public-key-material "$(echo "$KEY" | base64)" \
