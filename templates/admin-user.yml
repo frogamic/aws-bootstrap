@@ -57,7 +57,6 @@ Resources:
                   - iam:ListMFADevices
                   - iam:ListVirtualMFADevices
                   - iam:ResyncMFADevice
-                  - iam:Change
                   - sts:GetSessionToken
                 Resource: '*'
                 Condition:
