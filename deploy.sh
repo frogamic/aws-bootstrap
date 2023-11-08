@@ -16,7 +16,7 @@ REVISION="$(git rev-parse --short HEAD || die "unknown")"
 if [[ "$(git diff --stat)" != "" ]]; then
 	 REVISION="${REVISION}-dirty"
 fi
-REGION="ap-southeast-2"
+AWS_REGION="ap-southeast-2"
 
 cd templates
 for TEMPLATE in *.yaml; do
@@ -28,7 +28,7 @@ for TEMPLATE in *.yaml; do
 		--stack-name "$STACKNAME" \
 		--template-file "$TEMPLATE" \
 		--capabilities CAPABILITY_NAMED_IAM \
-		--region "$REGION" \
+		--region "$AWS_REGION" \
 		--parameter-overrides \
 			"Project=${PROJECT}" \
 			"Revision=${REVISION}" \

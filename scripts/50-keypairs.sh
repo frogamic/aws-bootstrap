@@ -18,6 +18,7 @@ for KEY in "${KEYS[@]}"; do
 			"Name=tag:Project,Values=${PROJECT}" \
 		--output json \
 		--query 'KeyPairs[0].KeyFingerprint' 2>/dev/null \
+		--region "${AWS_REGION}" \
 		|| echo "$NONE" \
 	)"
 
@@ -28,13 +29,15 @@ for KEY in "${KEYS[@]}"; do
 	if [[ "$REMOTEFINGERPRINT" != *$LOCALFINGERPRINT* ]]; then
 		if [[ "$REMOTEFINGERPRINT" != "$NONE" ]]; then
 			echo "  Deleting existing key - $KEYNAME"
-			aws ec2 delete-key-pair --key-name "$KEYNAME"
+			aws ec2 delete-key-pair --key-name "$KEYNAME" \
+				--region "${AWS_REGION}"
 		fi
 		echo "  Uploading key - $KEYNAME"
 		aws ec2 import-key-pair \
 			--key-name "$KEYNAME" \
 			--public-key-material "$(echo "$KEY" | base64)" \
 			--output text \
+			--region "${AWS_REGION}" \
 			--query "[KeyPairId,KeyFingerprint]" \
 			--tag-specifications "ResourceType=key-pair,Tags=[{Key=Project,Value=${PROJECT}},{Key=Revision,Value=${REVISION}}]"
 	fi
@@ -44,12 +47,14 @@ ALLKEYS="$(aws ec2 describe-key-pairs \
 	--filters \
 		"Name=tag:Project,Values=${PROJECT}" \
 	--output text \
+	--region "${AWS_REGION}" \
 	--query "KeyPairs[*].KeyName" \
 )"
 
 for KEY in $ALLKEYS; do
 	if [[ "$NEWKEYS" != *" $KEY "* ]]; then
 			echo "  Deleting old key - ${KEY}"
-			aws ec2 delete-key-pair --key-name "$KEY"
+			aws ec2 delete-key-pair --key-name "$KEY" \
+				--region "${AWS_REGION}"
 	fi
 done
