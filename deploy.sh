@@ -19,8 +19,9 @@ fi
 REGION="ap-southeast-2"
 
 cd templates
-for TEMPLATE in *.yml; do
-	STACKNAME="${PROJECT}-${TEMPLATE%.yml}"
+for TEMPLATE in *.yaml; do
+	STACKNAME="${TEMPLATE##[0-9][0-9]-}"
+	STACKNAME="${PROJECT}-${STACKNAME%.yaml}"
 	echo "Deploying ${STACKNAME}"
 
 	aws cloudformation deploy \
