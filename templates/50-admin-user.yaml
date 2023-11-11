@@ -24,6 +24,7 @@ Resources:
         PasswordResetRequired: true
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
+      PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/PermissionsBoundaries/DefaultPermissionsBoundary
       Policies:
         - PolicyName: enforce-mfa
           PolicyDocument:
