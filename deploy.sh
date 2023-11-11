@@ -35,9 +35,9 @@ for TEMPLATE in *.yaml; do
 		--no-fail-on-empty-changeset
 done
 
-cd ../scripts
-for SCRIPT in *.sh; do
-	echo "Executing ${SCRIPT}"
+# cd ../scripts
+# for SCRIPT in *.sh; do
+# 	echo "Executing ${SCRIPT}"
 
-	. "$SCRIPT"
-done
+# 	. "$SCRIPT"
+# done
