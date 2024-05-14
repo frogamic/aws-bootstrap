@@ -9,9 +9,12 @@ die() {
 	exit 1
 }
 
+hash jq || die "JQ is required"
+hash aws || die "AWS CLI is required"
+
 cd "$(dirname "$BASH_SOURCE[0]")"
 
-PROJECT="bootstrap"
+PROJECT="Bootstrap"
 REVISION="$(git rev-parse --short HEAD || die "unknown")"
 if [[ "$(git diff --stat)" != "" ]]; then
 	 REVISION="${REVISION}-dirty"
@@ -24,20 +27,16 @@ for TEMPLATE in *.yaml; do
 	STACKNAME="${PROJECT}-${STACKNAME%.yaml}"
 	echo "Deploying ${STACKNAME}"
 
+	PARAMS="Project=${PROJECT} Revision=${REVISION}"
+	PARAM_FILE="../parameters/${TEMPLATE%%.yaml}.json"
+	if [[ -f "$PARAM_FILE" ]]; then
+		PARAMS="${PARAMS} $(jq -r '. | join(" ")' < "$PARAM_FILE")"
+	fi
+
 	aws cloudformation deploy \
 		--stack-name "$STACKNAME" \
 		--template-file "$TEMPLATE" \
-		--capabilities CAPABILITY_NAMED_IAM \
 		--region "$AWS_REGION" \
-		--parameter-overrides \
-			"Project=${PROJECT}" \
-			"Revision=${REVISION}" \
+		--parameter-overrides $PARAMS \
 		--no-fail-on-empty-changeset
 done
-
-# cd ../scripts
-# for SCRIPT in *.sh; do
-# 	echo "Executing ${SCRIPT}"
-
-# 	. "$SCRIPT"
-# done
