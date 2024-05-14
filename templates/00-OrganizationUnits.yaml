@@ -1,0 +1,144 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS Organisation Layout
+
+Metadata:
+  Template:
+    Revision: !Ref Revision
+    Project: !Ref Project
+
+Parameters:
+  Project:
+    Description: An identifier for the project this stack is associated with.
+    Type: String
+  Revision:
+    Description: The git short hash of the repo when the template was applied.
+    Type: String
+  OrgRootId:
+    Description: The AWS organisation identifier
+    Type: String
+
+Resources:
+  RootScp:
+    Type: AWS::Organizations::Policy
+    Properties:
+      Name: RootScp
+      Type: SERVICE_CONTROL_POLICY
+      TargetIds:
+        - !Ref OrgRootId
+      Content:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DefaultAllow
+            Effect: Allow
+            Action: '*'
+            Resource: '*'
+          - Sid: DenyRootUser
+            Effect: Deny
+            Action: '*'
+            Resource: '*'
+            Condition:
+              StringLike: { 'aws:PrincipalArn': 'arn:aws:iam::*:root' }
+          - Sid: PreventLeaveOrg
+            Effect: Deny
+            Action: organizations:LeaveOrganization
+            Resource: '*'
+          - Sid: PreventAccessKeys
+            Effect: Deny
+            Resource: '*'
+            Action:
+              - iam:CreateAccessKey
+              - iam:CreateUser
+          - Sid: PreventChildIamIdCentre
+            Effect: Deny
+            Action: sso:CreateInstance
+            Resource: '*'
+          - Sid: PreventImdsV1
+            Effect: Deny
+            Action: '*'
+            Resource: '*'
+            Condition:
+              NumericLessThan: { 'ec2:RoleDelivery': '2.0' }
+          - Sid: RequireImdsV2
+            Effect: Deny
+            Action: ec2:RunInstances
+            Resource: arn:aws:ec2:*:*:instance/*
+            Condition:
+              StringNotEquals: { 'ec2:MetadataHttpTokens': 'required' }
+          - Sid: LimitImdsHops
+            Effect: Deny
+            Action: ec2:RunInstances
+            Resource: arn:aws:ec2:*:*:instance/*
+            Condition:
+              NumericGreaterThan: { 'ec2:MetadataHttpPutResponseHopLimit': '1' }
+          - Sid: PreventDisableImdsV2
+            Effect: Deny
+            Action: ec2:ModifyInstanceMetadataOptions
+            Resource: '*'
+          - Sid: PreventDisableSecurity
+            Effect: Deny
+            Action:
+              - guardduty:DeleteDetector
+              - guardduty:DisassociateFromMasterAccount
+              - guardduty:UpdateDetector
+              - guardduty:CreateFilter
+              - guardduty:CreateIPSet
+              - config:DeleteConfigRule
+              - config:DeleteConfigurationRecorder
+              - config:DeleteDeliveryChannel
+              - config:StopConfigurationRecorder
+              - access-analyzer:DeleteAnalyzer
+              - ec2:DisableEbsEncryptionByDefault
+              - s3:PutAccountPublicAccessBlock
+            Resource: '*'
+
+  ProdOu:
+    Type: AWS::Organizations::OrganizationalUnit
+    Properties:
+      Name: Production
+      ParentId: !Ref OrgRootId
+
+  ProdScp:
+    Type: AWS::Organizations::Policy
+    Properties:
+      Name: ProdScp
+      Type: SERVICE_CONTROL_POLICY
+      TargetIds:
+        - !Ref ProdOu
+      Content:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RequireS3Encryption
+            Effect: Deny
+            Action: s3:PutObject
+            Resource: '*'
+            Condition:
+              'Null': { 's3:x-amz-server-side-encryption': 'true' }
+
+  SandboxOu:
+    Type: AWS::Organizations::OrganizationalUnit
+    Properties:
+      Name: Sandbox
+      ParentId: !Ref OrgRootId
+
+  SandboxScp:
+    Type: AWS::Organizations::Policy
+    Properties:
+      Name: SandboxScp
+      Type: SERVICE_CONTROL_POLICY
+      TargetIds:
+        - !Ref SandboxOu
+      Content: 
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PreventVpcInternetAttachment
+            Effect: Deny
+            Action:
+              - ec2:AttachInternetGateway
+              - ec2:CreateInternetGateway
+              - ec2:CreateEgressOnlyInternetGateway
+              - ec2:CreateVpcPeeringConnection
+              - ec2:AcceptVpcPeeringConnection
+              - globalaccelerator:Create*
+              - globalaccelerator:Update*
+            Resource: '*'
